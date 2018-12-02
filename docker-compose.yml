@@ -1,0 +1,53 @@
+version: "3.2"
+
+services:
+  larapis-nginx:
+    build: 
+      context: .
+      dockerfile: nginx-dockerfile
+    ports:
+      - "8099:80"
+    networks:
+      - larapisnet
+    volumes:
+      - .:/var/appcode/larapis
+    depends_on:
+      - larapis-phpfpm
+  
+  larapis-phpfpm:
+    build:
+      context: .
+      dockerfile: phpfpm-dockerfile
+    networks:
+      - larapisnet
+    volumes:
+      - .:/var/appcode/larapis
+    depends_on:
+      - larapis-redis
+      - larapis-db
+
+  larapis-redis:
+    build:
+      context: .
+      dockerfile: redis-dockerfile
+    networks:
+      - larapisnet
+
+  larapis-db:
+    image: mysql:5
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3370:3306"
+    volumes:
+      - "mysql-data:/var/lib/mysql"
+    networks:
+    - larapisnet
+
+networks:
+  larapisnet:
+    driver: bridge      
+
+volumes:
+    mysql-data:
